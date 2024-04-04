@@ -31,14 +31,14 @@
     "build": "rollup -c rollup.config.mjs && npm run build:types",
     "build:types": "tsc -p .",
     "watch": "rollup -c rollup.config.mjs -w",
-    "test": "npm run build && mocha test && npm run test:types",
+    "test": "npm run build && npm run test:types && mocha test",
+    "test:ut": "mocha test",
     "test:types": "tsc -p test/types",
     "test:debug": "npm run build && mocha debug test",
     "coverage": "npm run build && c8 mocha && c8 report --reporter=html && echo Coverage report is available at ./coverage/index.html",
     "prepublishOnly": "npm run test"
   },
   "devDependencies": {
-    "@types/node": "20.11.5",
     "@babel/core": "7.23.7",
     "@babel/preset-env": "7.23.8",
     "@rollup/plugin-babel": "6.0.4",
@@ -46,12 +46,16 @@
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "15.2.3",
     "@rollup/plugin-terser": "0.4.4",
+    "@types/node": "20.11.5",
     "c8": "9.1.0",
     "date-format": "4.0.14",
-    "fs-extra": "11.2.0",
     "find-process": "1.4.7",
+    "fs-extra": "11.2.0",
     "mocha": "10.2.0",
     "rollup": "4.9.5",
     "typescript": "5.3.3"
+  },
+  "volta": {
+    "node": "18.17.0"
   }
 }

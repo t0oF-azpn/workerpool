@@ -3,6 +3,8 @@ var {Promise} = require('../src/Promise');
 var Pool = require('../src/Pool');
 var tryRequire = require('./utils').tryRequire
 
+//var sendEvent = require('./workers/emit').sendEvent
+
 function add(a, b) {
   return a + b;
 }
@@ -1189,12 +1191,90 @@ describe('Pool', function () {
         });
   });
 
-  it('should receive events from worker', function (done) {
+  it('should receive events from worker (pool.exec("functionName")', function (done) {
     var pool = createPool(__dirname + '/workers/emit.js');
 
     var receivedEvent
 
     pool.exec('sendEvent', [], {
+            on: function (payload) {
+              receivedEvent = payload
+            }
+          })
+          .then(function (result) {
+            assert.strictEqual(result, 'done');
+            assert.deepStrictEqual(receivedEvent, {
+              foo: 'bar'
+            });
+
+            pool.terminate();
+            done();
+          })
+          .catch(function (err) {
+            console.log(err);
+            assert('Should not throw an error');
+            done(err);
+          });
+  });
+
+  it.only('should receive events from worker: pool.exec(function)', function (done) {
+    var pool = createPool(__dirname + '/workers/emit.js');
+
+    function sendEvent() {
+      return new Promise(function (resolve, reject) {
+        console.info(`Local function exec: ${global}: ${Object.keys(global)}`)
+        //console.info(`Local function exec: ${workerpool ?? {}}: ${Object.keys(workerpool ?? {})}`)
+        // console.info(`${globalThis}: ${Object.keys(globalThis.global)}`)
+        // pool.workerEmit({
+        //   foo: 'bar'
+        // });
+        resolve('done');
+      });
+    }
+
+
+    var receivedEvent
+
+    pool.exec(sendEvent, [], {
+            on: function (payload) {
+              receivedEvent = payload
+            }
+          })
+          .then(function (result) {
+            assert.strictEqual(result, 'done');
+            assert.deepStrictEqual(receivedEvent, {
+              foo: 'bar'
+            });
+
+            pool.terminate();
+            done();
+          })
+          .catch(function (err) {
+            console.log(err);
+            assert('Should not throw an error');
+            done(err);
+          });
+  });
+
+  it('should receive events from web worker: pool.exec(function)', function (done) {
+    var pool = createPool({ workerType: 'web' });
+
+    function sendEvent() {
+      console.info(`Local function exec for web: ${pool}: ${Object.keys(pool)}`)
+      return new Promise(function (resolve, reject) {
+        // console.info(`${globalThis}: ${Object.keys(globalThis.global)}`)
+        pool.workerEmit({
+          foo: 'bar'
+        });
+        resolve('done');
+      });
+    }
+
+    const boundFunction = sendEvent.bind(pool);
+
+    var receivedEvent
+
+    pool.exec(sendEvent, [], {
             on: function (payload) {
               receivedEvent = payload
             }
